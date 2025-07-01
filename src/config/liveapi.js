@@ -34,6 +34,53 @@ export async function loginUser(data) {
   }
 }
 
+export async function getAllAdmin() {
+  try {
+    const response = await axios.get(
+        `${API_BASE_URL}/api/auth/admin`);
+    return response.data; 
+  } catch (error) {
+    console.log(error.message);
+    throw error;
+  }
+}
+
+export async function getAllSubjects(token) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+  try {
+    const response = await axios.get(
+   `${API_BASE_URL}/api/subject/get-all-subject`,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error.message);
+    throw error;
+  }
+}
+
+export async function getCourseFilter(token, page, searchInput, createdByFilter, subjectFilter) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+  const params = new URLSearchParams({
+    page: page || 1,
+    courseName: searchInput || "",
+    createdBy: createdByFilter || "",
+    subjectId: subjectFilter || "",
+  });
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/course/get-courses?${params}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error.message);
+    throw error;
+  }
+}
+
 export async function getAllUsers(token) {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -43,11 +90,10 @@ export async function getAllUsers(token) {
  `${API_BASE_URL}/api/auth/get-all-users`,
       { headers }
     );
-    // console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
+    return response.data; 
   } catch (error) {
     console.log(error.message);
-    throw error; // Re-throw the error if needed
+    throw error; 
   }
 }
 
@@ -64,23 +110,6 @@ export async function addNewCourses(token, data) {
     );
 
     console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
-  } catch (error) {
-    console.log(error.message);
-    throw error; // Re-throw the error if needed
-  }
-}
-
-export async function getAllSubjects(token) {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  try {
-    const response = await axios.get(
-   `${API_BASE_URL}/api/subject/get-all-subject`,
-      { headers }
-    );
-    // console.log(response, "errrrrrrrrr");
     return response.data; // Return the response data if needed
   } catch (error) {
     console.log(error.message);
@@ -106,34 +135,9 @@ export const updateCourseDetails = async (id, payload, token) => {
   }
 };
 
-export async function getAllAdmin() {
-  try {
-    const response = await axios.get(
-        `${API_BASE_URL}/api/auth/admin`);
-    // console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
-  } catch (error) {
-    console.log(error.message);
-    throw error; // Re-throw the error if needed
-  }
-}
 
-export async function getCourseFilter(token,page,searchInput,createdByFilter,subjectFilter) {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  try {
-    const response = await axios.get(
-        `${API_BASE_URL}/api/course/get-courses?page=${page}&search=${searchInput}&createdBy=${createdByFilter}&subject=${subjectFilter}`,
-      { headers }
-    );
-    // console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
-  } catch (error) {
-    console.log(error.message);
-    throw error; // Re-throw the error if needed
-  }
-}
+
+
 
 export const updateSubjectDetails = async (id, payload, token) => {
   try {

@@ -7,7 +7,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { PlusCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Table,
@@ -46,6 +46,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 export function CourseTable({
   columns,
   data,
+  loading,
+  page,
+  setPage,
+  totalPages,
+  searchInput,
+  setSearchInput,
+  selectedCreatedBy,
+  setSelectedCreatedBy,
+  selectedSubjectId,
+     subjectOptions,
+    creatorOptions,
+  setSelectedSubjectId,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -71,7 +83,22 @@ export function CourseTable({
         pageSize: 5,
       },
     },
+    meta: {
+    setSelectedCreatedBy,
+    setSelectedSubjectId,
+    subjectOptions,
+    creatorOptions,
+  },
   });
+  
+  const handleSearchChange = e => {
+    setSearchInput(e.target.value);
+    setPage(1);
+  };
+  console.log("Filters:", {
+  createdBy: selectedCreatedBy,
+  subjectId: selectedSubjectId,
+});
 
   return (
     <div className="space-y-4">
@@ -97,8 +124,8 @@ export function CourseTable({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Enter Course Name!"
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(String(event.target.value))}
+               value={searchInput}
+              onChange={handleSearchChange}
               className="w-full md:w-80 pl-9"
             />
           </div>
@@ -259,12 +286,16 @@ export function CourseTable({
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
+               {loading ? (
+                 <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-6">
+                  Loading...
+                </TableCell>
+              </TableRow>
+                ) : data.length ? (
+                   table.getRowModel().rows.map((row) => (
                     <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
+                      key={row.id} >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
@@ -293,17 +324,20 @@ export function CourseTable({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-primary"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
+        <span className="text-sm font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground">
+              {table.getState().pagination.pageIndex + 1}
+            </span>
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-primary"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

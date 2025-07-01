@@ -44,16 +44,10 @@ export const columns = [
     accessorKey: "class",
     header: "Class",
   },
-  {
+ {
     accessorKey: "subjects",
-    header: ({ column, table }) => {
-      const subjectValues = new Set();
-      table.getPreFilteredRowModel().flatRows.forEach((row) => {
-        const value = row.getValue("subjects");
-        if (value) subjectValues.add(value);
-      });
-      const subjects = Array.from(subjectValues);
-
+    header: ({ table }) => {
+      const subjectOptions = table.options.meta?.subjectOptions || [];
 
       return (
         <DropdownMenu>
@@ -69,39 +63,49 @@ export const columns = [
           <DropdownMenuContent
             align="start"
             className={
-              subjects.length > 4 ? "max-h-[180px] overflow-y-auto" : ""
+              subjectOptions.length > 4
+                ? "max-h-[180px] overflow-y-auto"
+                : ""
             }
           >
             <DropdownMenuLabel>Filter by Subject</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+            <DropdownMenuItem
+              onClick={() => table.options.meta?.setSelectedSubjectId("All")}
+            >
               All
             </DropdownMenuItem>
-            {subjects.map((subject) => (
+            {subjectOptions.map((subject) => (
               <DropdownMenuItem
-                key={subject}
-                onClick={() => column.setFilterValue(subject)}
+                key={subject._id}
+                onClick={() =>
+                  table.options.meta?.setSelectedSubjectId(subject._id)
+                }
               >
-                {subject}
+                {subject.name}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
-    cell: ({ row }) => (
-      <div className="text-left">{row.getValue("subjects")}</div>
-    ),
+    cell: ({ row }) => {
+      const value = row.getValue("subjects");
+      if (Array.isArray(value)) {
+        return value.map((v) => v.subjectName || v).join(", ");
+      }
+      if (typeof value === "object" && value !== null) {
+        return value.subjectName ?? "—";
+      }
+      return value ?? "—";
+    },
   },
-  {
+
+
+{
     accessorKey: "createdBy",
-    header: ({ column, table }) => {
-      const creatorValues = new Set();
-      table.getPreFilteredRowModel().flatRows.forEach((row) => {
-        const value = row.getValue("createdBy");
-        if (value) creatorValues.add(value);
-      });
-      const creators = Array.from(creatorValues);
+    header: ({ table }) => {
+      const creatorOptions = table.options.meta?.creatorOptions || [];
 
       return (
         <DropdownMenu>
@@ -117,35 +121,46 @@ export const columns = [
           <DropdownMenuContent
             align="start"
             className={
-              creators.length > 4 ? "max-h-[180px] overflow-y-auto" : ""
+              creatorOptions.length > 4
+                ? "max-h-[180px] overflow-y-auto"
+                : ""
             }
           >
             <DropdownMenuLabel>Filter by Creator</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+            <DropdownMenuItem
+              onClick={() => table.options.meta?.setSelectedCreatedBy("All")}
+            >
               All
             </DropdownMenuItem>
-            {creators.map((creator) => (
+            {creatorOptions.map((creator) => (
               <DropdownMenuItem
-                key={creator}
-                onClick={() => column.setFilterValue(creator)}
+                key={creator._id}
+                onClick={() =>
+                  table.options.meta?.setSelectedCreatedBy(creator._id)
+                }
               >
-                {creator}
+                {creator.name}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
-    cell: ({ row }) => (
-      <div className="text-left">{row.getValue("createdBy")}</div>
-    ),
-  },
-  {
-    accessorKey: "active",
-    header: "Active",
     cell: ({ row }) => {
-      const active = row.getValue("active");
+      const creator = row.getValue("createdBy");
+      if (typeof creator === "object" && creator !== null) {
+        return `${creator.firstName ?? ""} ${creator.lastName ?? ""}`.trim() || "—";
+      }
+      return creator ?? "—";
+    },
+  },
+
+  {
+    accessorKey: "isActive",
+    header: "Status",
+    cell: ({ row }) => {
+      const active = row.getValue("isActive");
       return (
         <Badge
           className={cn(
@@ -171,4 +186,4 @@ export const columns = [
       );
     },
   },
-]; 
+];
