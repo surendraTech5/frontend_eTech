@@ -61,6 +61,26 @@ export async function getAllSubjects(token) {
   }
 }
 
+export async function addNewCourses(token, data) {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+  try {
+    const response = await axios.post(
+      API_BASE_URL + `/api/course/create`,
+      data,
+      { headers }
+    );
+
+    console.log(response, "errrrrrrrrr");
+    return response.data;
+  } catch (error) {
+    console.log(error.message);
+    throw error;
+  }
+}
+
 export async function getCourseFilter(token, page, searchInput, createdByFilter, subjectFilter) {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -97,25 +117,6 @@ export async function getAllUsers(token) {
   }
 }
 
-export async function addNewCourses(token, data) {
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-  try {
-    const response = await axios.post(
-      API_BASE_URL + `/course/create`,
-      data,
-      { headers }
-    );
-
-    console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
-  } catch (error) {
-    console.log(error.message);
-    throw error; // Re-throw the error if needed
-  }
-}
 
 export const updateCourseDetails = async (id, payload, token) => {
   try {

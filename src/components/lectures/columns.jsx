@@ -4,44 +4,49 @@ import { cn } from "@/lib/utils";
 
 export const columns = [
   {
-    accessorKey: "lectureTitle",
+    accessorKey: "lectureName",
     header: "Lecture Title",
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
   },
   {
     accessorKey: "courseName",
     header: "Course",
   },
   {
-    accessorKey: "instructor",
-    header: "Instructor",
-  },
-  {
-    accessorKey: "date",
-    header: "Date",
+    accessorKey: "courseName",
+    header: "Course",
   },
   {
     accessorKey: "duration",
-    header: "Duration",
+    header: "video",
+  },
+    {
+    accessorKey: "duration",
+    header: "CreatedBy",
   },
   {
-    accessorKey: "status",
+    accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status");
+      const active = row.getValue("isActive");
       return (
         <Badge
           className={cn(
             "border-transparent font-medium",
-            status === "Completed" && "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-200",
-            status === "Upcoming" && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 hover:bg-yellow-200",
-            status === "Live" && "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-200"
+            active
+              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400 hover:bg-emerald-200"
+              : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-200"
           )}
         >
-          {status}
+          {active ? "Active" : "Inactive"}
         </Badge>
       );
     },
   },
+  
   {
     id: "actions",
     header: "Actions",
@@ -49,6 +54,17 @@ export const columns = [
       return (
         <Button variant="link" className="text-primary p-0 text-xs">
           View Details
+        </Button>
+      );
+    },
+  },
+   {
+    id: "update",
+    header: "Update",
+    cell: ({ row }) => {
+      return (
+        <Button variant="link" className="text-primary p-0 text-xs">
+          Edit
         </Button>
       );
     },

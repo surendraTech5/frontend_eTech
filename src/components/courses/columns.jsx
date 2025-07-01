@@ -22,15 +22,15 @@ export const columns = [
   },
   {
     accessorKey: "price",
-    header: "Price",
+    header: "Price(₹)",
   },
   {
     accessorKey: "discount",
     header: "Discount",
   },
   {
-    accessorKey: "courseDuration",
-    header: "Course Duration",
+    accessorKey: "duration",
+    header: "Course Duration(Month)",
   },
   {
     accessorKey: "medium",

@@ -8,6 +8,11 @@ import {
 } from "@tanstack/react-table";
 import { PlusCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import {
+  MEDIUM_OPTIONS,
+  BOARD_OPTIONS,
+  CLASS_OPTIONS,
+} from "../common/CourseConstant";
 
 import {
   Table,
@@ -41,7 +46,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { addNewCourses, getAllSubjects } from "../../config/liveapi";
+import { toast } from "react-toastify";
 
 export function CourseTable({
   columns,
@@ -55,13 +68,96 @@ export function CourseTable({
   selectedCreatedBy,
   setSelectedCreatedBy,
   selectedSubjectId,
-     subjectOptions,
-    creatorOptions,
+  subjectOptions,
+  creatorOptions,
   setSelectedSubjectId,
+  refreshCourses,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [courseName, setCourseName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [duration, setDuration] = useState("");
+  const [medium, setMedium] = useState("");
+  const [board, setBoard] = useState("");
+  const [classes, setClasses] = useState("");
+  const [activeDiscount, setActiveDiscount] = useState(false);
+  const [free, setFree] = useState(false);
+  const [paid, setPaid] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [subjectsList, setSubjectsList] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const token = localStorage.getItem("authToken");
+
+  useEffect(() => {
+    async function fetchSubjects() {
+      try {
+        const res = await getAllSubjects(token);
+        setSubjectsList(res.subjects || []);
+      } catch (err) {
+        console.error("Failed to fetch subjects:", err);
+      }
+    }
+    if (token) fetchSubjects();
+  }, [token]);
+
+  const handleSubmit = async () => {
+    if (
+      !courseName ||
+      !price ||
+      !duration ||
+      !medium ||
+      !board ||
+      !classes ||
+      !subject ||
+      !description
+    ) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    const payload = {
+      courseName,
+      description,
+      price: Number(price),
+      discount: Number(discount),
+      isActiveDiscount: activeDiscount,
+      isFree: free,
+      isPaid: paid,
+      duration,
+      medium,
+      board,
+      classes,
+      subjects: [subject],
+    };
+
+    try {
+      const res = await addNewCourses(token, payload);
+      if (res.success) {
+        toast.success("Course Created Successfully!");
+        setCourseName("");
+        setDescription("");
+        setPrice("");
+        setDiscount("");
+        setDuration("");
+        setMedium("");
+        setBoard("");
+        setClasses("");
+        setActiveDiscount(false);
+        setFree(false);
+        setPaid(false);
+        setSubject("");
+        setDialogOpen(false);
+        refreshCourses();
+      } else {
+        toast.error(res.message || "Failed to create course");
+      }
+    } catch (err) {
+      toast.error("Failed to add course");
+    }
+  };
 
   const table = useReactTable({
     data,
@@ -84,22 +180,17 @@ export function CourseTable({
       },
     },
     meta: {
-    setSelectedCreatedBy,
-    setSelectedSubjectId,
-    subjectOptions,
-    creatorOptions,
-  },
+      setSelectedCreatedBy,
+      setSelectedSubjectId,
+      subjectOptions,
+      creatorOptions,
+    },
   });
-  
-  const handleSearchChange = e => {
+
+  const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
     setPage(1);
   };
-  console.log("Filters:", {
-  createdBy: selectedCreatedBy,
-  subjectId: selectedSubjectId,
-});
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -124,14 +215,18 @@ export function CourseTable({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Enter Course Name!"
-               value={searchInput}
+              value={searchInput}
               onChange={handleSearchChange}
               className="w-full md:w-80 pl-9"
             />
           </div>
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="default" className="w-full md:w-auto">
+              <Button
+                variant="default"
+                className="w-full md:w-auto"
+                onClick={() => setDialogOpen(true)}
+              >
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Course
               </Button>
             </DialogTrigger>
@@ -145,101 +240,204 @@ export function CourseTable({
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 py-8 px-4 sm:px-6 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="courseName">Course Name</Label>
+                  <Label htmlFor="courseName">Course Name</Label>{" "}
+                  <span className="text-red-500">*</span>
                   <Input
+                    reqired
                     id="courseName"
                     placeholder="e.g. Intro to AI"
                     className="bg-background"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
                   />
                 </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="price">Price</Label>
-                  <Input id="price" placeholder="e.g. 99.99" className="bg-background" />
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price</Label>{" "}
+                  <span className="text-red-500">*</span>
+                  <Input
+                    reqired
+                    id="price"
+                    type="number"
+                    placeholder="e.g. 99.99"
+                    className="bg-background"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="discount">Discount (%)</Label>
-                  <Input id="discount" placeholder="e.g. 10" className="bg-background" />
+                  <Input
+                    id="discount"
+                    type="number"
+                    placeholder="e.g. 10"
+                    className="bg-background"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="courseDuration">Duration</Label>
-                  <Input id="courseDuration" placeholder="e.g. 8 Weeks" className="bg-background"/>
+                  <Label htmlFor="courseDuration">Duration</Label>{" "}
+                  <span className="text-red-500">*</span>
+                  <Input
+                    id="courseDuration"
+                    placeholder="e.g. 8 Weeks"
+                    className="bg-background"
+                    value={duration}
+                    reqired
+                    onChange={(e) => setDuration(e.target.value)}
+                  />
                 </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="createdBy">Created By</Label>
-                  <Input id="createdBy" placeholder="e.g. John Doe" className="bg-background"/>
-                </div>
-
-                <div className="space-y-3 md:col-span-2">
-                  <Label>Medium</Label>
-                  <RadioGroup defaultValue="english" className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="english" id="english" />
-                        <Label htmlFor="english">English</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="hindi" id="hindi" />
-                        <Label htmlFor="hindi">Hindi</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                 <div className="space-y-3 md:col-span-2">
-                  <Label>Board</Label>
-                  <RadioGroup defaultValue="cbse" className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="cbse" id="cbse" />
-                        <Label htmlFor="cbse">CBSE</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="icse" id="icse" />
-                        <Label htmlFor="icse">ICSE</Label>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="state" id="state" />
-                        <Label htmlFor="state">State Board</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="subjects">Subjects</Label>
-                   <Select>
-                    <SelectTrigger id="subjects" className="bg-background">
-                        <SelectValue placeholder="Select a subject" />
+                  <Label htmlFor="class">Class</Label>{" "}
+                  <span className="text-red-500">*</span>
+                  <Select
+                    onValueChange={(val) => setClasses(val)}
+                    value={classes}
+                  >
+                    <SelectTrigger id="class" className="bg-background">
+                      <SelectValue placeholder="Select a class" reqired />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="math">Mathematics</SelectItem>
-                        <SelectItem value="science">Science</SelectItem>
-                        <SelectItem value="history">History</SelectItem>
-                        <SelectItem value="english">English</SelectItem>
-                        <SelectItem value="cs">Computer Science</SelectItem>
+                      {Object.entries(CLASS_OPTIONS).map(([label, value]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="class">Class</Label>
-                  <Select>
-                    <SelectTrigger id="class" className="bg-background">
-                        <SelectValue placeholder="Select a class" />
+                <div className="space-y-3 md:col-span-2">
+                  <Label>Medium</Label> <span className="text-red-500">*</span>
+                  <RadioGroup
+                    value={medium}
+                    reqired
+                    onValueChange={(val) => setMedium(val)}
+                    className="flex flex-wrap items-center gap-4"
+                  >
+                    {MEDIUM_OPTIONS.map((m) => (
+                      <div key={m} className="flex items-center space-x-2">
+                        <RadioGroupItem value={m} id={m} />
+                        <Label htmlFor={m}>
+                          {m.charAt(0).toUpperCase() + m.slice(1)}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-3 md:col-span-2">
+                  <Label>Board</Label> <span className="text-red-500">*</span>
+                  <RadioGroup
+                    value={board}
+                    reqired
+                    onValueChange={(val) => setBoard(val)}
+                    className="flex flex-wrap items-center gap-4"
+                  >
+                    {BOARD_OPTIONS.map((b) => (
+                      <div key={b} className="flex items-center space-x-2">
+                        <RadioGroupItem value={b} id={b} />
+                        <Label htmlFor={b}>{b.toUpperCase()}</Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="subjects">Subjects</Label>{" "}
+                  <span className="text-red-500">*</span>
+                  <Select
+                    onValueChange={(val) => setSubject(val)}
+                    value={subject}
+                  >
+                    <SelectTrigger id="subjects" className="bg-background">
+                      <SelectValue placeholder="Select a subject" reqired />
                     </SelectTrigger>
                     <SelectContent>
-                        {[...Array(12).keys()].map(i => (
-                            <SelectItem key={i+1} value={`${i+1}`}>{`Class ${i+1}`}</SelectItem>
-                        ))}
+                      {subjectsList.map((subj) => (
+                        <SelectItem key={subj._id} value={subj._id}>
+                          {subj.subjectName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Description</Label>{" "}
+                  <span className="text-red-500">*</span>
                   <Textarea
                     id="description"
                     placeholder="e.g. Learn the basics of AI and its applications."
                     className="bg-background"
+                    value={description}
+                    reqired
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
-               
+
+                <div className="space-y-2">
+                  <Label>Free Course</Label>
+                  <RadioGroup
+                    value={free ? "yes" : "no"}
+                    onValueChange={(val) => {
+                      const isYes = val === "yes";
+                      setFree(isYes);
+                      if (isYes) setPaid(false); // disable Paid if Free is yes
+                    }}
+                    className="flex flex-wrap items-center gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="free-yes" />
+                      <Label htmlFor="free-yes">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="free-no" />
+                      <Label htmlFor="free-no">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Paid Course</Label>
+                  <RadioGroup
+                    value={paid ? "yes" : "no"}
+                    onValueChange={(val) => {
+                      const isYes = val === "yes";
+                      setPaid(isYes);
+                      if (isYes) setFree(false);
+                    }}
+                    className="flex flex-wrap items-center gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="paid-yes" />
+                      <Label htmlFor="paid-yes">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="paid-no" />
+                      <Label htmlFor="paid-no">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Active Discount</Label>
+                  <RadioGroup
+                    value={activeDiscount ? "yes" : "no"}
+                    onValueChange={(val) => setActiveDiscount(val === "yes")}
+                    className="flex flex-wrap items-center gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="active-discount-yes" />
+                      <Label htmlFor="active-discount-yes">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="active-discount-no" />
+                      <Label htmlFor="active-discount-no">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
                 <div className="flex items-center space-x-2 md:col-span-2">
                   <Checkbox id="active" defaultChecked />
                   <label
@@ -251,7 +449,7 @@ export function CourseTable({
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit" variant="default">
+                <Button type="submit" variant="default" onClick={handleSubmit}>
                   Create Course
                 </Button>
               </DialogFooter>
@@ -286,16 +484,18 @@ export function CourseTable({
                 ))}
               </TableHeader>
               <TableBody>
-               {loading ? (
-                 <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-6">
-                  Loading...
-                </TableCell>
-              </TableRow>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="text-center py-6"
+                    >
+                      Loading...
+                    </TableCell>
+                  </TableRow>
                 ) : data.length ? (
-                   table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id} >
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
@@ -324,12 +524,12 @@ export function CourseTable({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-primary"
-             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-        <span className="text-sm font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground">
+            <span className="text-sm font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground">
               {table.getState().pagination.pageIndex + 1}
             </span>
             <Button
@@ -337,7 +537,7 @@ export function CourseTable({
               size="icon"
               className="h-8 w-8 text-primary"
               onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={page === totalPages}
+              disabled={page === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -346,4 +546,4 @@ export function CourseTable({
       </Card>
     </div>
   );
-} 
+}

@@ -27,27 +27,28 @@ export default function Courses() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-    useEffect(() => {
-    async function fetch() {
-      setLoading(true);
-      try {
-        const resp = await getCourseFilter(
-          token,
-          currentPage,
-          debouncedSearch,
-          selectedCreatedBy !== "All" ? selectedCreatedBy : "",
-          selectedSubjectId !== "All" ? selectedSubjectId : ""
-        );
-        if (resp.success) {
-          setCourses(resp.courses);
-          setTotalPages(resp.totalPages);
-        }
-      } catch (err) {
-        console.error("Unable to fetch:", err);
+ const refreshCourses = async () => {
+    setLoading(true);
+    try {
+      const resp = await getCourseFilter(
+        token,
+        currentPage,
+        debouncedSearch,
+        selectedCreatedBy !== "All" ? selectedCreatedBy : "",
+        selectedSubjectId !== "All" ? selectedSubjectId : ""
+      );
+      if (resp.success) {
+        setCourses(resp.courses);
+        setTotalPages(resp.totalPages);
       }
-      setLoading(false);
+    } catch (err) {
+      console.error("Unable to fetch:", err);
     }
-    fetch();
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    refreshCourses();
   }, [token, currentPage, debouncedSearch, selectedCreatedBy, selectedSubjectId]);
 
   useEffect(() => {
@@ -90,10 +91,6 @@ export default function Courses() {
             Manage your course offerings and content.
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Course
-        </Button>
       </div>
       
       <Card>
@@ -116,6 +113,7 @@ export default function Courses() {
             setSelectedSubjectId={setSelectedSubjectId}
               subjectOptions={subjectOptions}
   creatorOptions={creatorOptions}
+   refreshCourses={refreshCourses}
                />
         </CardContent>
       </Card>
