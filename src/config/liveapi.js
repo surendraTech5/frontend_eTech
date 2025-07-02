@@ -100,6 +100,27 @@ export async function getCourseFilter(token, page, searchInput, createdByFilter,
     throw error;
   }
 }
+export const updateCourseDetails = async (token, courseId, data) => {
+  try {
+    const res = await axios.patch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/course/update/${courseId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error updating course:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Update failed",
+    };
+  }
+};
+
 
 export async function getAllUsers(token) {
   const headers = {
@@ -116,25 +137,6 @@ export async function getAllUsers(token) {
     throw error; 
   }
 }
-
-
-export const updateCourseDetails = async (id, payload, token) => {
-  try {
-    const response = await axios.patch(
-      `${API_BASE_URL}/api/course/update/${id}`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error during API call:", error);
-    throw error;
-  }
-};
 
 
 

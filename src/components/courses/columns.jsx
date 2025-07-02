@@ -180,7 +180,19 @@ export const columns = [
     header: "Update",
     cell: ({ row }) => {
       return (
-        <Button variant="link" className="text-primary p-0 text-xs">
+      <Button
+        variant="link"
+        className="text-primary p-0 text-xs"
+        onClick={() => {
+          const course = row.original;
+          // trigger modal open via props or context
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("openEditCourseModal", { detail: course })
+            );
+          }
+        }}
+      >
           Edit
         </Button>
       );

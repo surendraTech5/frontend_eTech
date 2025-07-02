@@ -13,6 +13,7 @@ import {
   BOARD_OPTIONS,
   CLASS_OPTIONS,
 } from "../common/CourseConstant";
+import EditCourseModal from "@/components/courses/EditCourseModal";
 
 import {
   Table,
@@ -55,6 +56,7 @@ import {
 } from "../ui/select";
 import { addNewCourses, getAllSubjects } from "../../config/liveapi";
 import { toast } from "react-toastify";
+import Spinner from "../common/Spinner";
 
 export function CourseTable({
   columns,
@@ -90,6 +92,8 @@ export function CourseTable({
   const [subject, setSubject] = useState("");
   const [subjectsList, setSubjectsList] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+const [selectedCourse, setSelectedCourse] = useState(null);
   const token = localStorage.getItem("authToken");
 
   useEffect(() => {
@@ -162,23 +166,27 @@ export function CourseTable({
   const table = useReactTable({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    pageCount: totalPages,
     state: {
+      pagination: {
+        pageIndex: page - 1, // Convert 1-based to 0-based
+        pageSize: 20, // Match backend page size
+      },
       sorting,
       columnFilters,
       globalFilter,
     },
-    initialState: {
-      pagination: {
-        pageSize: 5,
-      },
+    onPaginationChange: (updater) => {
+      const newState =
+        typeof updater === "function"
+          ? updater({ pageIndex: page - 1, pageSize: 20 })
+          : updater;
+      setPage(newState.pageIndex + 1); // Convert 0-based to 1-based
     },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     meta: {
       setSelectedCreatedBy,
       setSelectedSubjectId,
@@ -186,6 +194,14 @@ export function CourseTable({
       creatorOptions,
     },
   });
+  useEffect(() => {
+  const handler = (e) => {
+    setSelectedCourse(e.detail);
+    setEditDialogOpen(true);
+  };
+  window.addEventListener("openEditCourseModal", handler);
+  return () => window.removeEventListener("openEditCourseModal", handler);
+}, []);
 
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
@@ -490,7 +506,7 @@ export function CourseTable({
                       colSpan={columns.length}
                       className="text-center py-6"
                     >
-                      Loading...
+                      <Spinner size="lg" />
                     </TableCell>
                   </TableRow>
                 ) : data.length ? (
@@ -530,7 +546,7 @@ export function CourseTable({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground">
-              {table.getState().pagination.pageIndex + 1}
+              {page}
             </span>
             <Button
               variant="ghost"
@@ -544,6 +560,13 @@ export function CourseTable({
           </div>
         </CardContent>
       </Card>
+      <EditCourseModal
+  open={editDialogOpen}
+  setOpen={setEditDialogOpen}
+  courseData={selectedCourse}
+  refreshCourses={refreshCourses}
+  subjectsList={subjectsList}
+/>
     </div>
   );
 }
