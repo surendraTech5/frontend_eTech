@@ -7,7 +7,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { PlusCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import EditSubjectModal from "./EditSubjectModal"
 
 import {
   Table,
@@ -39,37 +40,105 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import Spinner from "../common/Spinner";
+import { Textarea } from "../ui/textarea";
+import { createSubject } from "../../config/liveapi";
+import { toast } from "react-toastify";
 
 export function SubjectTable({
   columns,
   data,
+  creatorOptions,
+  setSelectedCreatedBy,
+  loading,
+  page,
+  setPage,
+  totalPages,
+  searchInput,
+  setSearchInput,
+  selectedCreatedBy,
+  refreshSubject,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [subjectName, setSubjectName] = useState("");
+  const [description, setDescription] = useState("");
+  const token = localStorage.getItem("authToken");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const table = useReactTable({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    pageCount: totalPages,
     state: {
+      pagination: {
+        pageIndex: page - 1,
+        pageSize: 20,
+      },
       sorting,
       columnFilters,
       globalFilter,
     },
-    initialState: {
-      pagination: {
-        pageSize: 5,
-      },
+    onPaginationChange: (updater) => {
+      const newState =
+        typeof updater === "function"
+          ? updater({ pageIndex: page - 1, pageSize: 20 })
+          : updater;
+      setPage(newState.pageIndex + 1);
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    meta: {
+      setSelectedCreatedBy,
+      creatorOptions,
     },
   });
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+    setPage(1);
+  };
+    const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!subjectName.trim() || !description.trim()) {
+      return toast.error("All fields are required");
+    }
+    const payload = {
+      subjectName,
+      description,
+    };
+    try {
+      const res=await createSubject(token, payload);
+      console.log("res",res)
+       if (res.status) {
+      console.log("res",res)
+      toast.success("Subject Created Successfully!");
+      setSubjectName("");
+      setDescription("");
+      setDialogOpen(false);
+      refreshSubject();
+}
+else {
+      toast.error(res?.message || "Failed to create subject.");
+    }
+    } catch (err) {
+    console.log("err",err)
+      toast.error(err.message );
+    }
+  };
 
+    useEffect(() => {
+    const handler = (e) => {
+      setSelectedSubject(e.detail);
+      setEditDialogOpen(true);
+    };
+    window.addEventListener("openEditCourseModal", handler);
+    return () => window.removeEventListener("openEditCourseModal", handler);
+  }, []);
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -89,9 +158,9 @@ export function SubjectTable({
             </BreadcrumbList>
           </Breadcrumb>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="default" className="w-full md:w-auto">
+            <Button variant="default" className="w-full md:w-auto"  onClick={() => setDialogOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Subject
             </Button>
           </DialogTrigger>
@@ -105,27 +174,24 @@ export function SubjectTable({
             <div className="grid gap-6 py-8 px-4 sm:px-6 max-h-[60vh] overflow-y-auto">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
+                <span className="text-red-500">*</span>
                 <Input
-                  id="name"
-                  placeholder="e.g. Mathematics"
-                />
+                id="subjectName"
+                placeholder="e.g. Mathematics"
+                value={subjectName}
+                onChange={(e) => setSubjectName(e.target.value)}
+               />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">
-                  Description
-                </Label>
-                <Input
+              <div className="space-y-2 ">
+                <Label htmlFor="description">Description</Label>{" "}
+                <span className="text-red-500">*</span>
+                <Textarea
                   id="description"
-                  placeholder="e.g. Study of numbers"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="createdBy">
-                  Created By
-                </Label>
-                <Input
-                  id="createdBy"
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. Learn the basics of AI and its applications."
+                  className="bg-background"
+                  value={description}
+                  reqired
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
               <div className="flex items-center space-x-2 pt-2">
@@ -139,7 +205,7 @@ export function SubjectTable({
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" variant="default">
+              <Button type="submit" variant="default"  onClick={handleSubmit}>
                 Create Subject
               </Button>
             </DialogFooter>
@@ -157,10 +223,8 @@ export function SubjectTable({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search subjects..."
-                value={globalFilter ?? ""}
-                onChange={(event) =>
-                  setGlobalFilter(String(event.target.value))
-                }
+                value={searchInput}
+                onChange={handleSearchChange}
                 className="w-full md:max-w-sm pl-9"
               />
             </div>
@@ -186,7 +250,16 @@ export function SubjectTable({
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      <Spinner size="lg" />
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
@@ -240,6 +313,12 @@ export function SubjectTable({
           </div>
         </CardContent>
       </Card>
+      <EditSubjectModal
+        open={editDialogOpen}
+        setOpen={setEditDialogOpen}
+        subjectData={selectedSubject}
+        refreshSubject={refreshSubject}
+      />
     </div>
   );
-} 
+}

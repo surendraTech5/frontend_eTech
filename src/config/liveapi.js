@@ -121,6 +121,27 @@ export const updateCourseDetails = async (token, courseId, data) => {
   }
 };
 
+export async function getSubjectsFilter(token, page, searchInput, createdByFilter) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+  const params = new URLSearchParams({
+    page: page || 1,
+    subjectName: searchInput || "",
+    createdBy: createdByFilter || "",
+  });
+  try {
+    const response = await axios.get(
+ `${API_BASE_URL}/api/subject/get-sujects?${params}`, { headers });
+ console.log("res::",response.data)
+    return response.data;
+  } catch (error) {
+    console.log(error.message);
+    throw error;
+  }
+}
+
+
 
 export async function getAllUsers(token) {
   const headers = {
@@ -159,24 +180,6 @@ export const updateSubjectDetails = async (id, payload, token) => {
     throw error;
   }
 };
-
-export async function getSubjectsFilter(token,page,searchInput,createdByFilter) {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  try {
-    const response = await axios.get(
- `${API_BASE_URL}/api/subject/get-sujects?page=${page}&search=${searchInput}&createdBy=${createdByFilter}`,
-      { headers }
-    );
-    // console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
-  } catch (error) {
-    console.log(error.message);
-    throw error; // Re-throw the error if needed
-  }
-}
-
 export async function createSubject(token, data) {
   const headers = {
     "Content-Type": "application/json",
@@ -184,7 +187,7 @@ export async function createSubject(token, data) {
   };
   try {
     const response = await axios.post(
-      API_BASE_URL + `/subject/subject`,
+      API_BASE_URL + `/api/subject/create`,
       data,
       { headers }
     );

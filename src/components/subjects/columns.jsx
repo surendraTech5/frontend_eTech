@@ -22,14 +22,8 @@ export const columns = [
   },
   {
     accessorKey: "createdBy",
-    header: ({ column, table }) => {
-      const values = new Set();
-      table.getPreFilteredRowModel().flatRows.forEach((row) => {
-        const value = row.getValue("createdBy");
-        if (value) values.add(value);
-      });
-      const creators = Array.from(values);
-
+    header: ({ table }) => {
+      const creatorOptions = table.options.meta?.creatorOptions || [];
 
       return (
         <DropdownMenu>
@@ -45,35 +39,46 @@ export const columns = [
           <DropdownMenuContent
             align="start"
             className={
-              creators.length > 4 ? "max-h-[180px] overflow-y-auto" : ""
+              creatorOptions.length > 4
+                ? "max-h-[180px] overflow-y-auto"
+                : ""
             }
           >
             <DropdownMenuLabel>Filter by Creator</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+            <DropdownMenuItem
+              onClick={() => table.options.meta?.setSelectedCreatedBy("All")}
+            >
               All
             </DropdownMenuItem>
-            {creators.map((creator) => (
+            {creatorOptions.map((creator) => (
               <DropdownMenuItem
-                key={creator}
-                onClick={() => column.setFilterValue(creator)}
+                key={creator._id}
+                onClick={() =>
+                  table.options.meta?.setSelectedCreatedBy(creator._id)
+                }
               >
-                {creator}
+                {creator.name}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
-    cell: ({ row }) => (
-      <div className="text-left">{row.getValue("createdBy")}</div>
-    ),
-  },
-  {
-    accessorKey: "active",
-    header: "Active",
     cell: ({ row }) => {
-      const active = row.getValue("active");
+      const creator = row.getValue("createdBy");
+      if (typeof creator === "object" && creator !== null) {
+        return `${creator.firstName ?? ""} ${creator.lastName ?? ""}`.trim() || "—";
+      }
+      return creator ?? "—";
+    },
+  },
+
+  {
+    accessorKey: "isActive",
+    header: "Status",
+    cell: ({ row }) => {
+      const active = row.getValue("isActive");
       return (
         <Badge
           className={cn(
@@ -93,7 +98,19 @@ export const columns = [
     header: "Update",
     cell: ({ row }) => {
       return (
-        <Button variant="link" className="text-primary p-0 text-xs">
+      <Button
+        variant="link"
+        className="text-primary p-0 text-xs"
+        onClick={() => {
+          const course = row.original;
+          // trigger modal open via props or context
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("openEditCourseModal", { detail: course })
+            );
+          }
+        }}
+      >
           Edit
         </Button>
       );
