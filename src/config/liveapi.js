@@ -71,7 +71,7 @@ export async function addNewCourses(token, data) {
       API_BASE_URL + `/api/course/create`,
       data,
       { headers }
-    );
+    );  
 
     console.log(response, "errrrrrrrrr");
     return response.data;
@@ -217,25 +217,24 @@ export async function getAllLectureForTable(token) {
   }
 }
 
-export async function craeteLecture(token, data) {
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+export async function craeteLecture(token, formData) {
   try {
     const response = await axios.post(
-      API_BASE_URL + `/lecture/create`,
-      data,
-      { headers }
+      API_BASE_URL + `/api/lecture/create`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-
-    console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
+    return response.data;
   } catch (error) {
     console.log(error.message);
-    throw error; // Re-throw the error if needed
+    throw error;
   }
 }
+
 
 export async function getListOfCourses(token) {
   const headers = {
