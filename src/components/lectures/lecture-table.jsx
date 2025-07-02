@@ -55,7 +55,26 @@ import {
 import { toast } from "react-toastify";
 import Spinner from "../common/Spinner";
 
-export function LectureTable({ columns, data }) {
+export function LectureTable({
+  columns,
+  data,
+  loading,
+  page,
+  setPage,
+  totalPages,
+  searchInput,
+  setSearchInput,
+  selectedCreatedBy,
+  setSelectedCreatedBy,
+  selectedSubjectId,
+  subjectOptions,
+  creatorOptions,
+  setSelectedSubjectId,
+  selectedCourseId,
+  setSelectedCourseId,
+  courseOptions,
+  refreshLecture,
+}) {
   const [sorting, setSorting] = React.useState([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [lectureName, setLectureName] = useState("");
@@ -69,26 +88,42 @@ export function LectureTable({ columns, data }) {
   const [courseId, setCourseId] = useState("");
   const [courseList, setCourseList] = useState([]);
   const token = localStorage.getItem("authToken");
-  const [loading, setLoading] = useState(false);
+  const [loadingAdd, setLoadingAdd] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const table = useReactTable({
     data,
     columns,
+    manualPagination: true, // <-- this tells react-table to let you handle pagination
+    pageCount: totalPages, // <-- total pages returned from API
+    state: {
+      pagination: {
+        pageIndex: page - 1, // react-table uses 0-based indexing
+        pageSize: 5,
+      },
+      sorting,
+      globalFilter,
+    },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({ pageIndex: page - 1 })?.pageIndex
+          : updater?.pageIndex;
+      if (typeof next === "number") setPage(next + 1);
+    },
     getCoreRowModel: getCoreRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-      globalFilter,
-    },
-    initialState: {
-      pagination: {
-        pageSize: 5,
-      },
+    meta: {
+      subjectOptions,
+      coursesOptions: courseOptions,
+      setSelectedSubjectId,
+      creatorOptions,
+      setSelectedCreatedBy,
+      setSelectedCourseId,
     },
   });
 
@@ -135,7 +170,7 @@ export function LectureTable({ columns, data }) {
     if (notes) formData.append("notes", notes);
 
     try {
-      setLoading(true);
+      setLoadingAdd(true);
       const res = await craeteLecture(token, formData);
       if (res?.status) {
         toast.success(res.message || "Lecture Added Successfully!");
@@ -148,7 +183,7 @@ export function LectureTable({ columns, data }) {
         setCourseId("");
         setTest("");
         setIsOpen(false);
-        // refreshLecture();
+        refreshLecture();
       } else {
         toast.error(res?.message || "Something went wrong.");
       }
@@ -156,8 +191,12 @@ export function LectureTable({ columns, data }) {
       console.error("err", err);
       toast.error(err?.response?.data?.message || "Failed to add lecture");
     } finally {
-      setLoading(false);
+      setLoadingAdd(false);
     }
+  };
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+    setPage(1);
   };
 
   return (
@@ -403,9 +442,9 @@ export function LectureTable({ columns, data }) {
                 type="submit"
                 variant="default"
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loadingAdd}
               >
-                {loading ? "Loading.." : "Create Lecture"}
+                {loadingAdd ? "Loading.." : "Create Lecture"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -422,10 +461,8 @@ export function LectureTable({ columns, data }) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search lectures..."
-                value={globalFilter ?? ""}
-                onChange={(event) =>
-                  setGlobalFilter(String(event.target.value))
-                }
+                value={searchInput}
+                onChange={handleSearchChange}
                 className="w-full md:max-w-sm pl-9"
               />
             </div>
@@ -451,7 +488,16 @@ export function LectureTable({ columns, data }) {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      <Spinner size="lg" />
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}

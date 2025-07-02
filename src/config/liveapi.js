@@ -100,6 +100,29 @@ export async function getCourseFilter(token, page, searchInput, createdByFilter,
     throw error;
   }
 }
+
+
+export async function getLectureFilter(token, page, searchInput, createdByFilter, subjectFilter,courseFilter) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+  const params = new URLSearchParams({
+    page: page || 1,
+    lectureName: searchInput || "",
+    createdBy: createdByFilter || "",
+    subjectId: subjectFilter || "",
+    courseId: courseFilter || "",
+  });
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/lecture/get-lectures?${params}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error.message);
+    throw error;
+  }
+}
+
 export const updateCourseDetails = async (token, courseId, data) => {
   try {
     const res = await axios.patch(
@@ -193,23 +216,6 @@ export async function createSubject(token, data) {
     );
 
     console.log(response, "errrrrrrrrr");
-    return response.data; // Return the response data if needed
-  } catch (error) {
-    console.log(error.message);
-    throw error; // Re-throw the error if needed
-  }
-}
-
-export async function getAllLectureForTable(token) {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  try {
-    const response = await axios.get(
- `${API_BASE_URL}/api/lecture/get-lectures`,
-      { headers }
-    );
-    // console.log(response, "errrrrrrrrr");
     return response.data; // Return the response data if needed
   } catch (error) {
     console.log(error.message);
