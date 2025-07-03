@@ -26,6 +26,7 @@ export default function AuthSignIn() {
       navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
+      console.log("Login failed",err);
       toast.error(err?.response?.data?.message || "Login failed");
     }
   };
