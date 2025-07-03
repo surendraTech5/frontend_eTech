@@ -276,3 +276,19 @@ export const updateUserDeatilss = async (id, formData, token) => {
     throw error;
   }
 };
+
+export async function getDashboardstats(token) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+  try {
+    const response = await axios.get(
+     `${API_BASE_URL}/api/dashboard/stats`,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error.message);
+    throw error;
+  }
+}

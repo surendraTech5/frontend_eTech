@@ -15,6 +15,9 @@ import {
   Moon,
   FileText,
   LogOut,
+  GraduationCap,
+  BookOpen,
+  Video,
 } from "lucide-react";
 
 import {
@@ -53,21 +56,21 @@ const menuItems = [
   },
   {
     label: "Courses",
-    icon: Calendar,
+    icon: GraduationCap,
     href: "/courses",
     isCollapsible: true,
     subItems: [{ label: "List Of Course", href: "/courses" }],
   },
   {
     label: "Subject",
-    icon: BookCopy,
+    icon: BookOpen,
     href: "/subjects",
     isCollapsible: true,
     subItems: [{ label: "List Of Subject", href: "/subjects" }],
   },
   {
     label: "Lecture",
-    icon: Clock,
+    icon: Video,
     href: "/lectures",
     isCollapsible: true,
     subItems: [{ label: "All Lectures", href: "/lectures" }],
