@@ -40,18 +40,6 @@ export default function AuthSignIn() {
         <span className="text-lg">&larr;</span> Back to Dashboard
       </Link>
       {/* Header with theme switcher */}
-      <div className="absolute top-0 right-0 flex items-center gap-2 p-4 z-10">
-        <ThemeSwitcher />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </div>
       {/* Left: Sign In Form */}
       <div className="flex flex-col justify-center w-full max-w-xl px-8 py-12 mx-auto lg:w-1/2">
         <div className="mb-8">
@@ -144,9 +132,9 @@ export default function AuthSignIn() {
               strokeLinecap="round"
             />
           </svg>
-          <h2 className="text-2xl font-bold mb-2">TailAdmin</h2>
+          <h2 className="text-2xl font-bold mb-2">EduTech</h2>
           <p className="text-muted-foreground text-center max-w-xs">
-            Free and Open-Source Tailwind CSS Admin Dashboard Template
+            A platform for learning, sharing, and collaborating on educational content.
           </p>
         </div>
         {/* Theme switcher at bottom right */}

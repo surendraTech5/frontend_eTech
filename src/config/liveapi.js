@@ -258,3 +258,21 @@ export async function getListOfCourses(token) {
     throw error; // Re-throw the error if needed
   }
 }
+
+export const updateUserDeatilss = async (id, formData, token) => {
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/api/auth/update/${id}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error during API call:", error);
+    throw error;
+  }
+};
