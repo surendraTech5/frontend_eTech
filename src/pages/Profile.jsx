@@ -126,13 +126,13 @@ export default function Profile() {
             >
               <Facebook className="h-5 w-5" />
             </Button>
-            <Button
+            {/* <Button
               variant="outline"
               size="icon"
               className="border border-white text-white hover:border-primary hover:text-primary bg-transparent"
             >
               <Twitter className="h-5 w-5" />
-            </Button>
+            </Button> */}
             <Button
               variant="outline"
               size="icon"

@@ -13,6 +13,7 @@ import SampleForm from '@/pages/SampleForm'
 import AuthSignIn from '@/pages/AuthSignIn'
 import AuthSignUp from '@/pages/AuthSignUp'
 import PrivateRoute from '@/components/PrivateRoute';
+import Students from '@/pages/Students'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route path="/lectures" element={<PrivateRoute><Lectures /></PrivateRoute>} />
               <Route path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/student" element={<PrivateRoute><Students /></PrivateRoute>} />
               
               <Route path="/sample-form" element={<PrivateRoute><SampleForm /></PrivateRoute>} />
               <Route path="/auth/signin" element={<AuthSignIn />} />

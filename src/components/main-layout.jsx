@@ -18,6 +18,8 @@ import {
   GraduationCap,
   BookOpen,
   Video,
+  Users2,
+  UserSquare2
 } from "lucide-react";
 
 import {
@@ -54,6 +56,13 @@ const menuItems = [
     icon: LayoutGrid,
     href: "/",
   },
+    {
+    label: "Student",
+    icon: Users2,
+    href: "/student",
+    isCollapsible: true,
+    subItems: [{ label: "List Of Student", href: "/student" }],
+  },
   {
     label: "Courses",
     icon: GraduationCap,
@@ -77,7 +86,7 @@ const menuItems = [
   },
   {
     label: "User Profile",
-    icon: User,
+    icon: UserSquare2,
     href: "/profile",
   },
   {

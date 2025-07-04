@@ -292,3 +292,82 @@ export async function getDashboardstats(token) {
     throw error;
   }
 }
+
+//STUDENT MGMT
+
+// export async function getAllStudents(token) {
+//   try {
+//     const response = await axios.get(`${API_BASE_URL}/api/student/get-all`, {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching students:", error?.response?.data?.message || error.message);
+//     throw error;
+//   }
+// }
+
+export async function getAllStudents(token, page, searchInput) {
+  try {
+    const params = new URLSearchParams({
+      page: page || 1,
+      name: searchInput || "",
+    });
+
+    const response = await axios.get(`${API_BASE_URL}/api/student/get-all?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching students:", error?.response?.data?.message || error.message);
+    throw error;
+  }
+}
+
+
+
+// Create student
+export async function createStudent(data, token) {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/api/student/create`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating student:", error?.response?.data?.message || error.message);
+    throw error;
+  }
+}
+
+// Update student
+export async function updateStudent(id, data, token) {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/api/student/update/${id}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating student:", error?.response?.data?.message || error.message);
+    throw error;
+  }
+}
+
+// Delete student
+export async function deleteStudent(id, token) {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/api/student/delete/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting student:", error?.response?.data?.message || error.message);
+    throw error;
+  }
+}
